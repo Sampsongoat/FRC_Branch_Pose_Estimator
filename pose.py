@@ -1,6 +1,6 @@
 import math
 
-FIELD_LENGTH = 17.548  # 2025 FRC field length in meters
+FIELD_LENGTH = 17.548 / 2 # 2025 FRC field length in meters
 
 # ----------- Helper for printing poses -----------
 def print_pose(name, x, y, rotation):
@@ -53,9 +53,10 @@ def get_branches(distance):
 
     print("\n=== RED SIDE ===")
     for i, (x, y, rot) in enumerate(blue_data, start=1):
-        mirrored_x = FIELD_LENGTH - x
-        mirrored_rot = (360 - rot) % 360
-        print_pose(f"kRedBranch{i}", mirrored_x, y, mirrored_rot)
+        red_x = x + FIELD_LENGTH
+        red_y = y
+        red_rot = rot
+        print_pose(f"kRedBranch{i}", red_x, red_y, red_rot)
 
 
 # ----------- RUN -----------
