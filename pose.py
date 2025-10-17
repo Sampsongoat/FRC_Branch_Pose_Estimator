@@ -53,7 +53,7 @@ def get_branches(distance):
 
     print("\n=== RED SIDE ===")
     for i, (x, y, rot) in enumerate(blue_data, start=1):
-        red_x = x + FIELD_LENGTH
+        red_x = x + FIELD_LENGTH -.204
         red_y = y
         red_rot = rot
         print_pose(f"kRedBranch{i}", red_x, red_y, red_rot)
