@@ -1,28 +1,28 @@
 import math
 
-FIELD_LENGTH = 17.548 / 2 # 2025 FRC field length in meters
-# branch : .59 algae : .63
+FIELD_LENGTH = 17.548 # 2025 FRC field length in meters
+# branch : .59 offset: .035 algae : .63
 # ----------- Helper for printing poses -----------
 def print_pose(name, x, y, rotation):
     print(f"frc::Pose2d "
-          f"({x:.3f}_m, {y:.3f}_m, frc::Rotation2d({rotation:.1f}_deg));")
+          f"({x:.3f}_m, {y:.3f}_m, frc::Rotation2d({rotation:.1f}_deg)),")
 
 
 # ----------- BLUE BRANCH PARAMETERS -----------
-# branch_id: (x, y, angle, use_direct_x)
+# branch_id: (x, y, angle, use_direct_x, offset_angle)
 BRANCHES = {
-    1:  (5.350, 4.200, 180, True),
-    2:  (5.040, 4.655, 60,  False),
-    3:  (4.745, 4.805, 60,  False),
-    4:  (4.230, 4.805, 120, False),
-    5:  (3.935, 4.655, 120, False),
-    6:  (3.635, 4.200, 180, False),
-    7:  (3.635, 3.850, 180, False),
-    8:  (3.935, 3.390, 240, False),
-    9:  (4.215, 3.220, 240, False),
-    10: (4.745, 3.220, 300, False),
-    11: (5.040, 3.390, 300, False),
-    12: (5.350, 3.850, 180, True)
+    1:  (5.350, 4.200, 180, True, 270),
+    2:  (5.040, 4.655, 60,  False, 150),
+    3:  (4.745, 4.805, 60,  False, 330),
+    4:  (4.230, 4.805, 120, False, 210),
+    5:  (3.935, 4.655, 120, False, 30),
+    6:  (3.635, 4.200, 180, False, 270),
+    7:  (3.635, 3.850, 180, False, 90),
+    8:  (3.935, 3.390, 240, False, 330),
+    9:  (4.215, 3.220, 240, False, 150),
+    10: (4.745, 3.220, 300, False, 30),
+    11: (5.040, 3.390, 300, False, 210),
+    12: (5.350, 3.850, 180, True, 90)
 }
 
 ALGAE = {
@@ -38,24 +38,27 @@ DISTANCE_OFFSETS = {1, 6, 7, 12}
 
 
 # ----------- COMPUTE BLUE BRANCH POSE -----------
-def compute_branch(branch_id, distance):
-    x1, y1, angle, use_direct_x = BRANCHES[branch_id]
+def compute_branch(branch_id, distance, offset_distance):
+    x1, y1, angle, use_direct_x, offset_angle = BRANCHES[branch_id]
     d = distance - 0.05 if branch_id in DISTANCE_OFFSETS else distance
+    ofs = offset_distance
+    offsetx = ofs * math.cos(math.radians(offset_angle))
+    offsety = ofs * math.sin(math.radians(offset_angle))
 
     if use_direct_x:
         # Branches 1 & 12 just extend directly along +X (no rotation)
-        x2, y2 = x1 + d, y1
+        x2, y2 = x1 + d + offsetx, y1 + offsety
         rot_deg = angle
     else:
         # Normal trig-based branch movement
-        x2 = x1 + d * math.cos(math.radians(angle))
-        y2 = y1 + d * math.sin(math.radians(angle))
+        x2 = x1 + d * math.cos(math.radians(angle)) + offsetx
+        y2 = y1 + d * math.sin(math.radians(angle)) + offsety
         rot_deg = (angle + 180) % 360
 
     print_pose(f"kBlueBranch{branch_id}", x2, y2, rot_deg)
     return x2, y2, rot_deg
 
-def compute_algae(algae_id, distance):
+def compute_algae(algae_id, distance, offset):
     x1, y1, angle = ALGAE[algae_id]
     d = distance
 
@@ -76,15 +79,19 @@ def get_algae(distance):
         print_pose(f"kRedAlgae{i}", red_x, red_y, red_rot)    
 
 # ----------- MAIN FUNCTION -----------
-def get_branches(distance):
-    blue_data = [compute_branch(i, distance) for i in range(1, 13)]
+def get_branches(distance, offset_distance):
+    blue_data = [compute_branch(i, distance, offset_distance) for i in range(1, 13)]
 
     print("\n=== RED SIDE ===")
     for i, (x, y, rot) in enumerate(blue_data, start=1):
-        red_x = x + FIELD_LENGTH -.204
-        red_y = y
-        red_rot = rot
-        print_pose(f"kRedBranch{i}", red_x, red_y, red_rot)
+        red_x = FIELD_LENGTH - x
+        red_rot = (360 + 180 - rot) % 360
+
+#         for i, (x, y, rot) in enumerate(blue_data, start=1):
+# #         mirrored_x = FIELD_LENGTH - x
+# #         mirrored_rot = (360 - rot) % 360
+
+        print_pose(f"kRedBranch{i}", red_x, y, red_rot)
 
 
 # ----------- RUN -----------
@@ -92,13 +99,16 @@ if __name__ == "__main__":
     mode = input("Generate poses for (branch/algae)? ").strip().lower()
     distance = float(input("Enter distance from target (in meters): "))
 
-    print("=== BLUE SIDE ===")
     if mode == "branch":
-        get_branches(distance)
+        offset_distance = float(input("Enter coral offset (in meters): "))
+        print("=== BLUE SIDE ===")
+        get_branches(distance, offset_distance)
     elif mode == "algae":
+        print("=== BLUE SIDE ===")
         get_algae(distance)
     else:
         print("Invalid option. Please enter 'branch' or 'algae'.")
+
 
 
 # import math
