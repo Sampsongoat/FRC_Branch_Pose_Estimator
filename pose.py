@@ -1,6 +1,7 @@
 import math
 
 FIELD_LENGTH = 17.548 # 2025 FRC field length in meters
+FIELD_WIDTH = 8.05  # 2025 FRC field width in meters
 # branch : .59 offset: .035 algae : .63
 # ----------- Helper for printing poses -----------
 def print_pose(name, x, y, rotation):
@@ -85,13 +86,14 @@ def get_branches(distance, offset_distance):
     print("\n=== RED SIDE ===")
     for i, (x, y, rot) in enumerate(blue_data, start=1):
         red_x = FIELD_LENGTH - x
-        red_rot = (360 + 180 - rot) % 360
+        red_y = FIELD_WIDTH - y
+        red_rot = (540 + rot) % 360
 
 #         for i, (x, y, rot) in enumerate(blue_data, start=1):
 # #         mirrored_x = FIELD_LENGTH - x
 # #         mirrored_rot = (360 - rot) % 360
 
-        print_pose(f"kRedBranch{i}", red_x, y, red_rot)
+        print_pose(f"kRedBranch{i}", red_x, red_y, red_rot)
 
 
 # ----------- RUN -----------
